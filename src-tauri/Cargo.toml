@@ -30,6 +30,9 @@ md5 = "0.7"
 # Database
 rusqlite = { version = "0.32", features = ["bundled"] }
 
+# TOML parsing for plugin manifests
+toml = "0.8"
+
 # HuggingFace Hub
 hf-hub = "1.0"
 

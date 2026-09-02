@@ -1,7 +1,9 @@
 <script>
   import { invoke } from '@tauri-apps/api/core';
+  import PluginMarketplace from './PluginMarketplace.svelte';
 
   let activeSection = $state('appearance');
+  let showMarketplace = $state(false);
   let settings = $state({
     theme: 'light',
     fontSize: 'medium',
@@ -44,6 +46,10 @@
     } catch (e) {
       console.error('Failed to save settings:', e);
     }
+  }
+
+  function handleOpenMarketplace() {
+    showMarketplace = true;
   }
 
   $effect(() => {
@@ -156,10 +162,10 @@
           <h3>Plugins</h3>
           <p class="description">Manage installed plugins and browse the marketplace.</p>
           
-          <button class="btn-primary">Browse Marketplace</button>
+          <button class="btn-primary" onclick={handleOpenMarketplace}>Browse Marketplace</button>
           
           <div class="plugins-list">
-            <p class="placeholder">No plugins installed.</p>
+            <p class="placeholder">Click "Browse Marketplace" to find and install plugins.</p>
           </div>
         </div>
       {:else if activeSection === 'about'}
@@ -181,6 +187,11 @@
     </div>
   </div>
 </div>
+
+<PluginMarketplace 
+  show={showMarketplace} 
+  onClose={() => showMarketplace = false} 
+/>
 
 <style>
   .settings {
