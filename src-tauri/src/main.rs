@@ -51,6 +51,9 @@ fn main() {
             taker_lib::commands::audio::transcribe_audio,
             taker_lib::commands::audio::generate_podcast,
             taker_lib::commands::audio::get_audio_files,
+            taker_lib::commands::io::export_note,
+            taker_lib::commands::io::import_note,
+            taker_lib::commands::io::export_vault,
         ])
         .run(tauri::generate_context!())
         .expect("error while running taker application");
