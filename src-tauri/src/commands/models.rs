@@ -169,8 +169,6 @@ pub async fn download_model(
     repo_id: String,
     filename: String,
 ) -> Result<Model, String> {
-    use std::path::PathBuf;
-    
     // Get model directory
     let model_dir = app
         .path()

@@ -1,5 +1,6 @@
 <script>
   import { invoke } from '@tauri-apps/api/core';
+  import CloudBackendModal from './CloudBackendModal.svelte';
 
   let { onNoteSelect } = $props();
 
@@ -9,6 +10,8 @@
   let isSearching = $state(false);
   let downloadingModel = $state(null);
   let downloadProgress = $state(0);
+  let showCloudModal = $state(false);
+  let cloudBackends = $state([]);
 
   const recommendedModels = [
     {
@@ -57,7 +60,13 @@
     },
   ];
 
-  let cloudBackends = $state([]);
+  async function loadCloudBackends() {
+    try {
+      cloudBackends = await invoke('get_cloud_backends');
+    } catch (e) {
+      console.error('Failed to load cloud backends:', e);
+    }
+  }
 
   async function handleModelSelect(model) {
     if (downloadingModel) return;
@@ -66,7 +75,6 @@
     downloadProgress = 0;
     
     try {
-      // Simulate progress (in real app, we'd use Tauri events)
       const progressInterval = setInterval(() => {
         downloadProgress = Math.min(downloadProgress + 5, 90);
       }, 500);
@@ -111,14 +119,25 @@
     if (e.key === 'Enter') handleSearch();
   }
 
-  async function handleAddCloudBackend() {
-    // TODO: Open cloud backend modal
-    console.log('Add cloud backend');
+  function handleAddCloudBackend() {
+    showCloudModal = true;
+  }
+
+  function handleCloudModalClose() {
+    showCloudModal = false;
+  }
+
+  function handleBackendAdded() {
+    loadCloudBackends();
   }
 
   function handleNewNote() {
     onNoteSelect?.({ id: null, title: '', content: '' });
   }
+
+  $effect(() => {
+    loadCloudBackends();
+  });
 </script>
 
 <div class="greetings">
@@ -251,6 +270,16 @@
           <div class="cloud-list">
             {#if cloudBackends.length === 0}
               <p class="placeholder">No cloud backends configured.</p>
+            {:else}
+              {#each cloudBackends as backend}
+                <div class="backend-item">
+                  <div class="backend-info">
+                    <h4>{backend.name}</h4>
+                    <p>{backend.endpoint}</p>
+                    <span class="model-tag">{backend.modelName}</span>
+                  </div>
+                </div>
+              {/each}
             {/if}
           </div>
         </div>
@@ -258,6 +287,12 @@
     </div>
   </div>
 </div>
+
+<CloudBackendModal 
+  show={showCloudModal} 
+  onClose={handleCloudModalClose}
+  onBackendAdded={handleBackendAdded}
+/>
 
 <style>
   .greetings {
@@ -549,6 +584,35 @@
     border-radius: var(--radius-sm);
     font-size: 0.75rem;
     font-weight: 500;
+  }
+
+  .backend-item {
+    padding: var(--space-md);
+    background-color: var(--color-canvas);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-sm);
+  }
+
+  .backend-info h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+  }
+
+  .backend-info p {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-xs);
+  }
+
+  .model-tag {
+    display: inline-block;
+    padding: 2px var(--space-xs);
+    background-color: var(--color-accent);
+    color: white;
+    font-size: 0.75rem;
+    border-radius: var(--radius-sm);
   }
 
   .placeholder {
