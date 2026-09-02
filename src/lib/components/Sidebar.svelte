@@ -80,7 +80,7 @@
 
     <button 
       class="nav-item"
-      class:active={currentView === 'editor' && !selectedNote}
+      class:active={currentView === 'editor'}
       onclick={handleNewNote}
     >
       <span class="icon">📝</span>
@@ -140,7 +140,7 @@
       {#each notes as note}
         <button 
           class="note-item"
-          class:active={currentView === 'editor' && selectedNote?.id === note.id}
+          class:active={false}
           onclick={() => handleNoteSelect(note)}
         >
           📄 {note.title || 'Untitled'}
