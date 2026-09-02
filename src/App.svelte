@@ -4,6 +4,7 @@
   import Settings from './lib/components/Settings.svelte';
   import Greetings from './lib/components/Greetings.svelte';
   import CommandPalette from './lib/components/CommandPalette.svelte';
+  import KeyboardShortcuts from './lib/components/KeyboardShortcuts.svelte';
   import { invoke } from '@tauri-apps/api/core';
 
   let currentView = $state('greetings');
@@ -90,10 +91,23 @@
     }
   }
 
-  function handleKeydown(e) {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-      e.preventDefault();
-      showCommandPalette = !showCommandPalette;
+  function handleKeyboardAction(actionId) {
+    switch (actionId) {
+      case 'command-palette':
+        showCommandPalette = !showCommandPalette;
+        break;
+      case 'new-note':
+        handleNewNote();
+        break;
+      case 'settings':
+        isSettingsOpen = !isSettingsOpen;
+        break;
+      case 'escape':
+        showCommandPalette = false;
+        isSettingsOpen = false;
+        break;
+      default:
+        console.log('Keyboard action:', actionId);
     }
   }
 
@@ -103,8 +117,10 @@
   });
 </script>
 
+<KeyboardShortcuts onAction={handleKeyboardAction} />
+
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="app" onkeydown={handleKeydown}>
+<div class="app">
   <Sidebar 
     {currentView} 
     {vaults}
