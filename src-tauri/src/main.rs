@@ -39,6 +39,11 @@ fn main() {
             taker_lib::commands::plugins::get_plugins,
             taker_lib::commands::plugins::enable_plugin,
             taker_lib::commands::plugins::disable_plugin,
+            taker_lib::commands::ai::summarize_note,
+            taker_lib::commands::ai::generate_flashcards,
+            taker_lib::commands::ai::generate_slideshow,
+            taker_lib::commands::ai::get_flashcards,
+            taker_lib::commands::ai::get_slideshows,
         ])
         .run(tauri::generate_context!())
         .expect("error while running taker application");
