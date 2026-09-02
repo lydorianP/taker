@@ -11,10 +11,10 @@ impl Database {
         let conn = Connection::open(db_path)?;
         
         // Enable WAL mode for better performance
-        conn.execute("PRAGMA journal_mode=WAL", [])?;
+        conn.execute_batch("PRAGMA journal_mode=WAL")?;
         
         // Enable foreign keys
-        conn.execute("PRAGMA foreign_keys=ON", [])?;
+        conn.execute_batch("PRAGMA foreign_keys=ON")?;
         
         let db = Database {
             conn: Mutex::new(conn),
