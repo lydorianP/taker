@@ -1,0 +1,50 @@
+[package]
+name = "taker"
+version = "0.1.0"
+description = "Local AI Note Taker & Study Companion"
+authors = ["Taker Contributors"]
+license = "MIT"
+repository = "https://github.com/taker-app/taker"
+edition = "2021"
+
+[lib]
+name = "taker_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+anyhow = "1"
+thiserror = "2"
+dirs = "6"
+md5 = "0.7"
+
+# Database
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+# HuggingFace Hub
+hf-hub = "1.0"
+
+# LLM Inference (llama.cpp)
+# llama-cpp-4 = "0.6"
+
+# WASM Plugin Runtime
+# wasmtime = "45"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+panic = "abort"

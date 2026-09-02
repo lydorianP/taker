@@ -1,0 +1,94 @@
+:root {
+  /* Warm Academic Color Palette */
+  --color-canvas: #FFFEF7;
+  --color-surface: #F5F0E8;
+  --color-surface-hover: #EDE8DF;
+  --color-text: #2C2825;
+  --color-text-secondary: #6B6560;
+  --color-border: #E5E3DF;
+  --color-accent: #B86E4A;
+  --color-accent-hover: #A5613F;
+  --color-success: #4A6741;
+  --color-warning: #7A2E2E;
+  --color-muted: #9CAF88;
+
+  /* Dark Mode */
+  --color-dark-canvas: #1A1917;
+  --color-dark-surface: #2C2825;
+  --color-dark-surface-hover: #3D3835;
+  --color-dark-text: #F5F0E8;
+  --color-dark-text-secondary: #9CAF88;
+  --color-dark-border: #3D3835;
+
+  /* Typography */
+  --font-heading: 'Satoshi', system-ui, sans-serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', monospace;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+}
+
+[data-theme="dark"] {
+  --color-canvas: var(--color-dark-canvas);
+  --color-surface: var(--color-dark-surface);
+  --color-surface-hover: var(--color-dark-surface-hover);
+  --color-text: var(--color-dark-text);
+  --color-text-secondary: var(--color-dark-text-secondary);
+  --color-border: var(--color-dark-border);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-canvas);
+  color: var(--color-text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
