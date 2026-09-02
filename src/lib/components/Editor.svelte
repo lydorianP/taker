@@ -1,6 +1,7 @@
 <script>
   import { invoke } from '@tauri-apps/api/core';
   import { marked } from 'marked';
+  import AudioPlayer from './AudioPlayer.svelte';
 
   let { note = null, vaultId = null, onNoteSaved } = $props();
 
@@ -11,6 +12,9 @@
   let isProcessing = $state(false);
   let flashcards = $state([]);
   let summary = $state(null);
+  let audioSrc = $state(null);
+  let audioTitle = $state('');
+  let showAudioPlayer = $state(false);
 
   $effect(() => {
     if (note) {
@@ -83,6 +87,48 @@
       alert('Slideshow generated! Check the slideshows section.');
     } catch (e) {
       console.error('Failed to generate slideshow:', e);
+    } finally {
+      isProcessing = false;
+    }
+  }
+
+  async function handleGeneratePodcast() {
+    if (!note?.id || isProcessing) return;
+    isProcessing = true;
+    try {
+      const episode = await invoke('generate_podcast', { 
+        noteIds: [note.id],
+        title: `${note.title} - Podcast`
+      });
+      
+      if (episode.audio_path) {
+        audioSrc = episode.audio_path;
+        audioTitle = episode.title;
+        showAudioPlayer = true;
+      }
+    } catch (e) {
+      console.error('Failed to generate podcast:', e);
+    } finally {
+      isProcessing = false;
+    }
+  }
+
+  async function handleReadAloud() {
+    if (!content || isProcessing) return;
+    isProcessing = true;
+    try {
+      const audioFile = await invoke('text_to_speech', { 
+        text: content,
+        voice: null
+      });
+      
+      if (audioFile.path) {
+        audioSrc = audioFile.path;
+        audioTitle = 'Read Aloud';
+        showAudioPlayer = true;
+      }
+    } catch (e) {
+      console.error('Failed to generate audio:', e);
     } finally {
       isProcessing = false;
     }
@@ -204,11 +250,22 @@
       <button class="ai-btn" onclick={handleGenerateSlideshow} disabled={isProcessing || !note?.id}>
         {isProcessing ? 'Processing...' : '📊 Create Slideshow'}
       </button>
-      <button class="ai-btn" disabled={isProcessing || !note?.id}>
-        🎙️ Generate Podcast
+      <button class="ai-btn" onclick={handleGeneratePodcast} disabled={isProcessing || !note?.id}>
+        {isProcessing ? 'Processing...' : '🎙️ Generate Podcast'}
+      </button>
+      <button class="ai-btn" onclick={handleReadAloud} disabled={isProcessing || !content}>
+        {isProcessing ? 'Processing...' : '🔊 Read Aloud'}
       </button>
     </div>
   </div>
+
+  {#if showAudioPlayer}
+    <AudioPlayer 
+      audioSrc={audioSrc} 
+      title={audioTitle}
+      onClose={() => { showAudioPlayer = false; audioSrc = null; }}
+    />
+  {/if}
 </div>
 
 <style>

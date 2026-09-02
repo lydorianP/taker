@@ -44,6 +44,10 @@ fn main() {
             taker_lib::commands::ai::generate_slideshow,
             taker_lib::commands::ai::get_flashcards,
             taker_lib::commands::ai::get_slideshows,
+            taker_lib::commands::audio::text_to_speech,
+            taker_lib::commands::audio::transcribe_audio,
+            taker_lib::commands::audio::generate_podcast,
+            taker_lib::commands::audio::get_audio_files,
         ])
         .run(tauri::generate_context!())
         .expect("error while running taker application");

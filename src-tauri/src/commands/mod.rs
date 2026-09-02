@@ -3,3 +3,4 @@ pub mod models;
 pub mod plugins;
 pub mod settings;
 pub mod ai;
+pub mod audio;
