@@ -1,18 +1,18 @@
 <script>
-  import { invoke } from '@tauri-apps/api/core';
-
   let { 
     currentView = 'greetings', 
     vaults = [], 
     notes = [],
+    selectedVaultId = null,
     onViewChange, 
     onNoteSelect, 
     onSettingsToggle,
-    onVaultCreated 
+    onVaultCreated,
+    onVaultSelect,
+    onNewNote
   } = $props();
 
   let isCollapsed = $state(false);
-  let selectedVault = $state(null);
   let showNewVaultInput = $state(false);
   let newVaultName = $state('');
 
@@ -48,6 +48,16 @@
     if (e.key === 'Enter') createVault();
     if (e.key === 'Escape') { showNewVaultInput = false; newVaultName = ''; }
   }
+
+  function selectVault(vaultId) {
+    onVaultSelect?.(vaultId);
+  }
+
+  function handleNewNote() {
+    onNewNote?.();
+  }
+
+  import { invoke } from '@tauri-apps/api/core';
 </script>
 
 <aside class="sidebar" class:collapsed={isCollapsed}>
@@ -70,8 +80,8 @@
 
     <button 
       class="nav-item"
-      class:active={currentView === 'editor'}
-      onclick={() => handleNoteSelect({ id: null, title: '', content: '' })}
+      class:active={currentView === 'editor' && !selectedNote}
+      onclick={handleNewNote}
     >
       <span class="icon">📝</span>
       {#if !isCollapsed}<span>New Note</span>{/if}
@@ -106,11 +116,19 @@
         </div>
       {/if}
 
+      <button 
+        class="vault-item"
+        class:active={selectedVaultId === null}
+        onclick={() => selectVault(null)}
+      >
+        📚 All Notes
+      </button>
+
       {#each vaults as vault}
         <button 
           class="vault-item"
-          class:active={selectedVault === vault.id}
-          onclick={() => selectedVault = vault.id}
+          class:active={selectedVaultId === vault.id}
+          onclick={() => selectVault(vault.id)}
         >
           📁 {vault.name}
         </button>
@@ -118,10 +136,11 @@
     </div>
 
     <div class="notes">
-      <h3 class="section-title">Recent Notes</h3>
+      <h3 class="section-title">Notes</h3>
       {#each notes as note}
         <button 
           class="note-item"
+          class:active={currentView === 'editor' && selectedNote?.id === note.id}
           onclick={() => handleNoteSelect(note)}
         >
           📄 {note.title || 'Untitled'}
@@ -213,6 +232,10 @@
     padding: var(--space-sm);
     flex: 1;
     overflow-y: auto;
+  }
+
+  .notes {
+    flex: 1;
   }
 
   .section-header {
@@ -307,7 +330,7 @@
     background-color: var(--color-surface-hover);
   }
 
-  .vault-item.active {
+  .vault-item.active, .note-item.active {
     background-color: var(--color-accent);
     color: white;
   }

@@ -1,7 +1,7 @@
 <script>
   import { invoke } from '@tauri-apps/api/core';
 
-  let { note = null, onNoteSaved } = $props();
+  let { note = null, vaultId = null, onNoteSaved } = $props();
 
   let title = $state('');
   let content = $state('');
@@ -30,7 +30,7 @@
         const newNote = await invoke('create_note', { 
           title: title || 'Untitled', 
           content, 
-          vaultId: null 
+          vaultId 
         });
         onNoteSaved?.(newNote);
         return;

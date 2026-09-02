@@ -7,6 +7,7 @@
 
   let currentView = $state('greetings');
   let selectedNote = $state(null);
+  let selectedVaultId = $state(null);
   let isSettingsOpen = $state(false);
   let vaults = $state([]);
   let notes = $state([]);
@@ -19,9 +20,9 @@
     }
   }
 
-  async function loadNotes() {
+  async function loadNotes(vaultId = null) {
     try {
-      notes = await invoke('get_notes', { vaultId: null });
+      notes = await invoke('get_notes', { vaultId });
     } catch (e) {
       console.error('Failed to load notes:', e);
     }
@@ -53,12 +54,22 @@
     await loadVaults();
   }
 
+  function handleVaultSelect(vaultId) {
+    selectedVaultId = vaultId;
+    loadNotes(vaultId);
+  }
+
   async function handleNoteSaved(newNote) {
     if (newNote) {
       selectedNote = newNote;
       currentView = 'editor';
     }
-    await loadNotes();
+    await loadNotes(selectedVaultId);
+  }
+
+  function handleNewNote() {
+    selectedNote = null;
+    currentView = 'editor';
   }
 
   $effect(() => {
@@ -72,18 +83,20 @@
     {currentView} 
     {vaults}
     {notes}
+    {selectedVaultId}
     onViewChange={handleViewChange} 
     onNoteSelect={handleNoteSelect}
     onSettingsToggle={handleSettingsToggle}
     onVaultCreated={handleVaultCreated}
-    onNoteSaved={handleNoteSaved}
+    onVaultSelect={handleVaultSelect}
+    onNewNote={handleNewNote}
   />
   
   <main class="content">
     {#if currentView === 'greetings'}
       <Greetings onNoteSelect={handleNoteSelect} />
     {:else if currentView === 'editor'}
-      <Editor note={selectedNote} onNoteSaved={handleNoteSaved} />
+      <Editor note={selectedNote} vaultId={selectedVaultId} onNoteSaved={handleNoteSaved} />
     {:else if currentView === 'settings'}
       <Settings />
     {/if}
