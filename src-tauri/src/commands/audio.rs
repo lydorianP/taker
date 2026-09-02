@@ -44,8 +44,6 @@ pub async fn text_to_speech(
     text: String,
     _voice: Option<String>,
 ) -> Result<AudioFile, String> {
-    use std::path::PathBuf;
-    
     // Create audio directory
     let audio_dir = app
         .path()
@@ -109,8 +107,6 @@ pub async fn generate_podcast(
     note_ids: Vec<i64>,
     title: Option<String>,
 ) -> Result<PodcastEpisode, String> {
-    use std::path::PathBuf;
-    
     // Get notes content
     let mut notes_content = Vec::new();
     for note_id in &note_ids {

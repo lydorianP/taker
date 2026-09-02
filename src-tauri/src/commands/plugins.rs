@@ -85,8 +85,6 @@ pub async fn install_plugin(
     author: String,
     plugin_type: String,
 ) -> Result<Plugin, String> {
-    use std::path::PathBuf;
-    
     // Create plugins directory
     let plugins_dir = app
         .path()
