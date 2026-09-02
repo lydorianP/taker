@@ -1,8 +1,14 @@
 <script>
+  import { invoke } from '@tauri-apps/api/core';
+
   let { onNoteSelect } = $props();
 
   let searchQuery = $state('');
   let activeTab = $state('recommended');
+  let searchResults = $state([]);
+  let isSearching = $state(false);
+  let downloadingModel = $state(null);
+  let downloadProgress = $state(0);
 
   const recommendedModels = [
     {
@@ -13,6 +19,8 @@
       quantization: 'Q4_K_M',
       downloadSize: '2.5 GB',
       useCase: 'Quick summaries, flashcards',
+      repoId: 'microsoft/Phi-4-mini-instruct-GGUF',
+      filename: 'phi-4-mini-instruct.Q4_K_M.gguf',
     },
     {
       id: 2,
@@ -22,6 +30,8 @@
       quantization: 'Q4_K_M',
       downloadSize: '2.0 GB',
       useCase: 'General study tasks',
+      repoId: 'Qwen/Qwen2.5-3B-Instruct-GGUF',
+      filename: 'qwen2.5-3b-instruct-q4_k_m.gguf',
     },
     {
       id: 3,
@@ -31,6 +41,8 @@
       quantization: 'Q4_K_M',
       downloadSize: '5.0 GB',
       useCase: 'Study Q&A, note expansion',
+      repoId: 'bartowski/Meta-Llama-3.3-8B-Instruct-GGUF',
+      filename: 'Meta-Llama-3.3-8B-Instruct-Q4_K_M.gguf',
     },
     {
       id: 4,
@@ -40,16 +52,67 @@
       quantization: 'Q4_K_M',
       downloadSize: '4.5 GB',
       useCase: 'Multilingual study notes',
+      repoId: 'Qwen/Qwen2.5-7B-Instruct-GGUF',
+      filename: 'qwen2.5-7b-instruct-q4_k_m.gguf',
     },
   ];
 
   let cloudBackends = $state([]);
 
-  function handleModelSelect(model) {
-    console.log('Selected model:', model);
+  async function handleModelSelect(model) {
+    if (downloadingModel) return;
+    
+    downloadingModel = model;
+    downloadProgress = 0;
+    
+    try {
+      // Simulate progress (in real app, we'd use Tauri events)
+      const progressInterval = setInterval(() => {
+        downloadProgress = Math.min(downloadProgress + 5, 90);
+      }, 500);
+      
+      await invoke('download_model', { 
+        repoId: model.repoId, 
+        filename: model.filename 
+      });
+      
+      clearInterval(progressInterval);
+      downloadProgress = 100;
+      
+      setTimeout(() => {
+        downloadingModel = null;
+        downloadProgress = 0;
+      }, 1000);
+    } catch (e) {
+      console.error('Failed to download model:', e);
+      downloadingModel = null;
+      downloadProgress = 0;
+    }
   }
 
-  function handleAddCloudBackend() {
+  async function handleSearch() {
+    if (!searchQuery.trim()) return;
+    
+    isSearching = true;
+    try {
+      searchResults = await invoke('search_huggingface', { 
+        query: searchQuery, 
+        limit: 10 
+      });
+    } catch (e) {
+      console.error('Failed to search HuggingFace:', e);
+      searchResults = [];
+    } finally {
+      isSearching = false;
+    }
+  }
+
+  function handleSearchKeydown(e) {
+    if (e.key === 'Enter') handleSearch();
+  }
+
+  async function handleAddCloudBackend() {
+    // TODO: Open cloud backend modal
     console.log('Add cloud backend');
   }
 
@@ -126,9 +189,18 @@
               <div class="use-case">
                 <strong>Best for:</strong> {model.useCase}
               </div>
-              <button class="btn-download" onclick={() => handleModelSelect(model)}>
-                Download
-              </button>
+              {#if downloadingModel?.id === model.id}
+                <div class="download-progress">
+                  <div class="progress-bar">
+                    <div class="progress-fill" style="width: {downloadProgress}%"></div>
+                  </div>
+                  <span class="progress-text">{downloadProgress}%</span>
+                </div>
+              {:else}
+                <button class="btn-download" onclick={() => handleModelSelect(model)}>
+                  Download
+                </button>
+              {/if}
             </div>
           {/each}
         </div>
@@ -139,11 +211,36 @@
               type="text" 
               placeholder="Search for GGUF models on HuggingFace..." 
               bind:value={searchQuery}
+              onkeydown={handleSearchKeydown}
             />
-            <button class="btn-search">Search</button>
+            <button class="btn-search" onclick={handleSearch} disabled={isSearching}>
+              {isSearching ? 'Searching...' : 'Search'}
+            </button>
           </div>
           <div class="search-results">
-            <p class="placeholder">Enter a search query to find models.</p>
+            {#if searchResults.length > 0}
+              {#each searchResults as model}
+                <div class="search-result-item">
+                  <div class="result-info">
+                    <h4>{model.name}</h4>
+                    <div class="result-meta">
+                      <span>↓ {model.downloads.toLocaleString()}</span>
+                      <span>♥ {model.likes.toLocaleString()}</span>
+                      {#if model.pipeline_tag}
+                        <span class="tag">{model.pipeline_tag}</span>
+                      {/if}
+                    </div>
+                  </div>
+                  <button class="btn-download-small" onclick={() => handleModelSelect(model)}>
+                    Download
+                  </button>
+                </div>
+              {/each}
+            {:else if isSearching}
+              <p class="placeholder">Searching...</p>
+            {:else}
+              <p class="placeholder">Enter a search query to find models.</p>
+            {/if}
           </div>
         </div>
       {:else if activeTab === 'cloud'}
@@ -331,6 +428,33 @@
     background-color: var(--color-accent-hover);
   }
 
+  .download-progress {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 8px;
+    background-color: var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background-color: var(--color-accent);
+    transition: width var(--transition-fast);
+  }
+
+  .progress-text {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    min-width: 40px;
+  }
+
   .search-section,
   .cloud-section {
     padding: var(--space-md);
@@ -364,6 +488,11 @@
     font-weight: 500;
   }
 
+  .btn-search:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
   .btn-primary {
     padding: var(--space-sm) var(--space-md);
     background-color: var(--color-accent);
@@ -381,13 +510,51 @@
   .search-results,
   .cloud-list {
     min-height: 200px;
+  }
+
+  .search-result-item {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    padding: var(--space-md);
+    background-color: var(--color-canvas);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-sm);
+  }
+
+  .result-info h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+  }
+
+  .result-meta {
+    display: flex;
+    gap: var(--space-md);
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+  }
+
+  .tag {
+    padding: 2px var(--space-xs);
+    background-color: var(--color-surface);
+    border-radius: var(--radius-sm);
+  }
+
+  .btn-download-small {
+    padding: var(--space-xs) var(--space-sm);
+    background-color: var(--color-accent);
+    color: white;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
   }
 
   .placeholder {
     color: var(--color-text-secondary);
     font-style: italic;
+    text-align: center;
+    padding: var(--space-xl);
   }
 </style>

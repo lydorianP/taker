@@ -33,6 +33,11 @@ rusqlite = { version = "0.32", features = ["bundled"] }
 # HuggingFace Hub
 hf-hub = "1.0"
 
+# HTTP client for model downloads
+reqwest = { version = "0.12", features = ["stream", "json"] }
+futures-util = "0.3"
+urlencoding = "2"
+
 # LLM Inference (llama.cpp)
 # llama-cpp-4 = "0.6"
 
