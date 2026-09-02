@@ -26,6 +26,7 @@ fn main() {
             taker_lib::commands::notes::create_vault,
             taker_lib::commands::notes::get_vaults,
             taker_lib::commands::notes::delete_vault,
+            taker_lib::commands::notes::search_notes,
             taker_lib::commands::models::get_models,
             taker_lib::commands::models::get_cloud_backends,
             taker_lib::commands::models::add_cloud_backend,

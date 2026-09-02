@@ -204,3 +204,50 @@ pub fn delete_vault(
         .map_err(|e| e.to_string())?;
     Ok(())
 }
+
+#[tauri::command]
+pub fn search_notes(
+    db: State<'_, Arc<Database>>,
+    query: String,
+    vault_id: Option<i64>,
+) -> Result<Vec<Note>, String> {
+    let search_pattern = format!("%{}%", query);
+    
+    let notes = if let Some(vid) = vault_id {
+        db.query_map(
+            "SELECT id, vault_id, title, content, tags, metadata, created_at, modified_at FROM notes WHERE vault_id = ?1 AND (title LIKE ?2 OR content LIKE ?3) ORDER BY modified_at DESC",
+            &[&vid as &dyn rusqlite::types::ToSql, &search_pattern, &search_pattern],
+            |row| {
+                Ok(Note {
+                    id: row.get(0)?,
+                    vault_id: row.get(1)?,
+                    title: row.get(2)?,
+                    content: row.get(3)?,
+                    tags: row.get(4)?,
+                    metadata: row.get(5)?,
+                    created_at: row.get(6)?,
+                    modified_at: row.get(7)?,
+                })
+            },
+        ).map_err(|e| e.to_string())?
+    } else {
+        db.query_map(
+            "SELECT id, vault_id, title, content, tags, metadata, created_at, modified_at FROM notes WHERE title LIKE ?1 OR content LIKE ?2 ORDER BY modified_at DESC",
+            &[&search_pattern as &dyn rusqlite::types::ToSql, &search_pattern],
+            |row| {
+                Ok(Note {
+                    id: row.get(0)?,
+                    vault_id: row.get(1)?,
+                    title: row.get(2)?,
+                    content: row.get(3)?,
+                    tags: row.get(4)?,
+                    metadata: row.get(5)?,
+                    created_at: row.get(6)?,
+                    modified_at: row.get(7)?,
+                })
+            },
+        ).map_err(|e| e.to_string())?
+    };
+    
+    Ok(notes)
+}
