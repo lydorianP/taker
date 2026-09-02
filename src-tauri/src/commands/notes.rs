@@ -36,7 +36,7 @@ pub fn create_note(
     
     db.execute(
         "INSERT INTO notes (vault_id, title, content, content_hash, created_at, modified_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-        &[&vault_id.map(|v| v.to_string()).unwrap_or_default(), &title, &content, &content_hash, &now, &now],
+        &[&vault_id as &dyn rusqlite::types::ToSql, &title, &content, &content_hash, &now, &now],
     ).map_err(|e| e.to_string())?;
     
     let id = db.query_row("SELECT last_insert_rowid()", &[] as &[&dyn rusqlite::types::ToSql], |row| row.get(0))
@@ -62,7 +62,7 @@ pub fn get_notes(
     let notes = if let Some(vid) = vault_id {
         db.query_map(
             "SELECT id, vault_id, title, content, tags, metadata, created_at, modified_at FROM notes WHERE vault_id = ?1 ORDER BY modified_at DESC",
-            &[&vid.to_string()],
+            &[&vid as &dyn rusqlite::types::ToSql],
             |row| {
                 Ok(Note {
                     id: row.get(0)?,
@@ -104,7 +104,7 @@ pub fn get_note(
 ) -> Result<Note, String> {
     db.query_row(
         "SELECT id, vault_id, title, content, tags, metadata, created_at, modified_at FROM notes WHERE id = ?1",
-        &[&id.to_string()],
+        &[&id as &dyn rusqlite::types::ToSql],
         |row| {
             Ok(Note {
                 id: row.get(0)?,
@@ -129,20 +129,14 @@ pub fn update_note(
 ) -> Result<Note, String> {
     let now = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string();
     
-    if let Some(t) = &title {
-        db.execute(
-            "UPDATE notes SET title = ?1, modified_at = ?2 WHERE id = ?3",
-            &[t, &now, &id.to_string()],
-        ).map_err(|e| e.to_string())?;
-    }
+    let t = title.as_deref().unwrap_or("");
+    let c = content.as_deref().unwrap_or("");
+    let content_hash = format!("{:x}", md5::compute(c.as_bytes()));
     
-    if let Some(c) = &content {
-        let content_hash = format!("{:x}", md5::compute(c.as_bytes()));
-        db.execute(
-            "UPDATE notes SET content = ?1, content_hash = ?2, modified_at = ?3 WHERE id = ?4",
-            &[c, &content_hash, &now, &id.to_string()],
-        ).map_err(|e| e.to_string())?;
-    }
+    db.execute(
+        "UPDATE notes SET title = ?1, content = ?2, content_hash = ?3, modified_at = ?4 WHERE id = ?5",
+        &[&t, &c, &content_hash, &now, &id as &dyn rusqlite::types::ToSql],
+    ).map_err(|e| e.to_string())?;
     
     get_note(db, id)
 }
@@ -152,7 +146,7 @@ pub fn delete_note(
     db: State<'_, Arc<Database>>,
     id: i64,
 ) -> Result<(), String> {
-    db.execute("DELETE FROM notes WHERE id = ?1", &[&id.to_string()])
+    db.execute("DELETE FROM notes WHERE id = ?1", &[&id as &dyn rusqlite::types::ToSql])
         .map_err(|e| e.to_string())?;
     Ok(())
 }
@@ -167,7 +161,7 @@ pub fn create_vault(
     
     db.execute(
         "INSERT INTO vaults (name, description, created_at, modified_at) VALUES (?1, ?2, ?3, ?4)",
-        &[&name, &description.as_deref().unwrap_or(""), &now, &now],
+        &[&name as &dyn rusqlite::types::ToSql, &description as &dyn rusqlite::types::ToSql, &now, &now],
     ).map_err(|e| e.to_string())?;
     
     let id = db.query_row("SELECT last_insert_rowid()", &[] as &[&dyn rusqlite::types::ToSql], |row| row.get(0))
@@ -206,7 +200,7 @@ pub fn delete_vault(
     db: State<'_, Arc<Database>>,
     id: i64,
 ) -> Result<(), String> {
-    db.execute("DELETE FROM vaults WHERE id = ?1", &[&id.to_string()])
+    db.execute("DELETE FROM vaults WHERE id = ?1", &[&id as &dyn rusqlite::types::ToSql])
         .map_err(|e| e.to_string())?;
     Ok(())
 }

@@ -3,8 +3,8 @@
 
   let { note = null, onNoteSaved } = $props();
 
-  let title = $state(note?.title || '');
-  let content = $state(note?.content || '');
+  let title = $state('');
+  let content = $state('');
   let isPreview = $state(false);
   let isSaving = $state(false);
 
@@ -32,7 +32,8 @@
           content, 
           vaultId: null 
         });
-        note = newNote;
+        onNoteSaved?.(newNote);
+        return;
       }
       onNoteSaved?.();
     } catch (e) {

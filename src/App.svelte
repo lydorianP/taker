@@ -53,7 +53,11 @@
     await loadVaults();
   }
 
-  async function handleNoteSaved() {
+  async function handleNoteSaved(newNote) {
+    if (newNote) {
+      selectedNote = newNote;
+      currentView = 'editor';
+    }
     await loadNotes();
   }
 
