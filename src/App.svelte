@@ -3,12 +3,14 @@
   import Editor from './lib/components/Editor.svelte';
   import Settings from './lib/components/Settings.svelte';
   import Greetings from './lib/components/Greetings.svelte';
+  import CommandPalette from './lib/components/CommandPalette.svelte';
   import { invoke } from '@tauri-apps/api/core';
 
   let currentView = $state('greetings');
   let selectedNote = $state(null);
   let selectedVaultId = $state(null);
   let isSettingsOpen = $state(false);
+  let showCommandPalette = $state(false);
   let vaults = $state([]);
   let notes = $state([]);
 
@@ -72,13 +74,37 @@
     currentView = 'editor';
   }
 
+  function handleCommandPaletteAction(actionId) {
+    switch (actionId) {
+      case 'new-note':
+        handleNewNote();
+        break;
+      case 'settings':
+        isSettingsOpen = true;
+        break;
+      case 'toggle-sidebar':
+        // TODO: Toggle sidebar
+        break;
+      default:
+        console.log('Action:', actionId);
+    }
+  }
+
+  function handleKeydown(e) {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      showCommandPalette = !showCommandPalette;
+    }
+  }
+
   $effect(() => {
     loadVaults();
     loadNotes();
   });
 </script>
 
-<div class="app">
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="app" onkeydown={handleKeydown}>
   <Sidebar 
     {currentView} 
     {vaults}
@@ -113,6 +139,12 @@
       </div>
     </div>
   {/if}
+
+  <CommandPalette 
+    show={showCommandPalette}
+    onClose={() => showCommandPalette = false}
+    onAction={handleCommandPaletteAction}
+  />
 </div>
 
 <style>

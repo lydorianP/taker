@@ -12,14 +12,6 @@
   --color-warning: #7A2E2E;
   --color-muted: #9CAF88;
 
-  /* Dark Mode */
-  --color-dark-canvas: #1A1917;
-  --color-dark-surface: #2C2825;
-  --color-dark-surface-hover: #3D3835;
-  --color-dark-text: #F5F0E8;
-  --color-dark-text-secondary: #9CAF88;
-  --color-dark-border: #3D3835;
-
   /* Typography */
   --font-heading: 'Satoshi', system-ui, sans-serif;
   --font-body: 'DM Sans', system-ui, sans-serif;
@@ -43,12 +35,14 @@
 }
 
 [data-theme="dark"] {
-  --color-canvas: var(--color-dark-canvas);
-  --color-surface: var(--color-dark-surface);
-  --color-surface-hover: var(--color-dark-surface-hover);
-  --color-text: var(--color-dark-text);
-  --color-text-secondary: var(--color-dark-text-secondary);
-  --color-border: var(--color-dark-border);
+  --color-canvas: #1A1917;
+  --color-surface: #2C2825;
+  --color-surface-hover: #3D3835;
+  --color-text: #F5F0E8;
+  --color-text-secondary: #9CAF88;
+  --color-border: #3D3835;
+  --color-accent: #D4845F;
+  --color-accent-hover: #E09A78;
 }
 
 * {
